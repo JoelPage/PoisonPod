@@ -92,6 +92,7 @@ class Bot():
 
             channel = self.m_dBot.get_channel(channelID)
             self.m_settings.m_dChannelID = channelID
+            self.m_settings.Save()
             await ctx.send(f"Channel set to <#{channelID}>")
 
     def Run(self):
