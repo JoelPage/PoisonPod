@@ -17,3 +17,7 @@ def utcnow():
 
 def utcnowtimestamp():
     return utcnow().timestamp()
+
+def MakeDir(dir):
+    if not os.path.exists(dir):
+        os.makedirs(dir)

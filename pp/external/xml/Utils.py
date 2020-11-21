@@ -5,6 +5,7 @@ import xml.etree.ElementTree as pyElementTree
 from xml.dom import minidom as pyMinidom
 import re as pyRe
 import sys as pySys
+import os
 
 def create_tree_root(name):
     return pyElementTree.Element(name)
@@ -128,15 +129,15 @@ def get_attrib_unicode(node, name):
 
 # Read tree from xml file
 def fileRead(fileName):
-    file = open(fileName, "r")
+    file = open(fileName, "a+")
     tree = pyElementTree.parse(file)
     file.close()
     return tree
-
+    
 # Write xml string to file
 def fileWrite(data, fileName):
     prettyData = prettify_minidom(data)
-    file = open(fileName, "wb")
+    file = open(fileName, "wb+")
     file.write(bytes(prettyData, "utf-8"))
     file.close()
 

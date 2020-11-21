@@ -31,7 +31,7 @@ class Bot():
         @dUtils.commands.has_any_role(*roles)
         async def version(ctx, *args):
             print("!version")
-            await ctx.send("Poison Pod Bot v0.0.1")
+            await ctx.send("Poison Pod Bot v0.0.1\nhttps://github.com/JoelPage/PoisonPod")
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)

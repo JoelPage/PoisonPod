@@ -10,8 +10,11 @@ class UserManager():
         self.Load()
 
     def Load(self):
-        xmlTree = xmlUtils.fileRead(self.m_xmlFilePath)
-        self.CreateUsersFromRoot(xmlTree.getroot())
+        try:
+            xmlTree = xmlUtils.fileRead(self.m_xmlFilePath)
+            self.CreateUsersFromRoot(xmlTree.getroot())
+        except:
+            pass
 
     def Save(self):
         root = xmlUtils.create_tree_root('root')
