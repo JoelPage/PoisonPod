@@ -21,7 +21,6 @@ API_HEADERS = {
 }
 
 def checkUser(user): #returns true if online, false if not
-    #print("pp/external/twitch/Utils.py")
     print(f"Checking if user {user} is live.")
     userid = twitch.get_users(logins=[user])['data'][0]['id']
     url = TWITCH_STREAM_API_ENDPOINT_V5.format(userid)
