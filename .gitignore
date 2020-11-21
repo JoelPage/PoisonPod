@@ -1,0 +1,8 @@
+# Environment Variables
+.env 
+
+# Directories
+__pycache__/
+data/
+
+# Files
