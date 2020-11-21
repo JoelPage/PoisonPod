@@ -129,7 +129,7 @@ def get_attrib_unicode(node, name):
 
 # Read tree from xml file
 def fileRead(fileName):
-    file = open(fileName, "a+")
+    file = open(fileName, "r")
     tree = pyElementTree.parse(file)
     file.close()
     return tree
