@@ -39,8 +39,6 @@ class Bot():
             print("!adduser")
             dID = args[0]
             tName = args[1]
-            print(dID)
-            print(tName)
             success = self.m_userManager.AddUser(dID, tName)
             if success:
                 await ctx.send(f"User {dID} was succesfully added.")
@@ -91,9 +89,12 @@ class Bot():
                 return
 
             channel = self.m_dBot.get_channel(channelID)
-            self.m_settings.m_dChannelID = channelID
-            self.m_settings.Save()
-            await ctx.send(f"Channel set to <#{channelID}>")
+            if channel:
+                self.m_settings.m_dChannelID = channelID
+                self.m_settings.Save()
+                await ctx.send(f"Channel set to <#{channelID}>")
+            else:
+                await ctx.send(f"Channel could not be found.")
 
     def Run(self):
         print("Retrieving token!")
@@ -106,10 +107,10 @@ class Bot():
         self.m_userManager.Save()
 
     async def Start_Async(self):
-        channelId = self.m_settings.GetChannelID()
-        interval = 60
+        interval = 30
         await self.m_dBot.wait_until_ready()
         while True:
+            channelID = self.m_settings.GetChannelID()
             users = self.m_userManager.GetUsers()
             isDirty = False
             for user in users:
@@ -122,7 +123,7 @@ class Bot():
                     if not wasLive:
                         isDirty = True
                         if user.ShouldNotify():
-                            await self.PostMessage_Async(channelId, f"{dID} went live! Check them out on https://www.twitch.tv/{tName}")
+                            await self.PostMessage_Async(channelID, f"{dID} went live! Check them out on https://www.twitch.tv/{tName}")
                 else:
                     if wasLive:
                         isDirty = True
@@ -134,8 +135,8 @@ class Bot():
             await pUtils.sleep_async(interval)
         
     async def PostMessage_Async(self, channelID, message):
-        channel = self.GetChannel(channelID)
-        await channel.send(message)
-
-    def GetChannel(self, channelID):
-        return self.m_dBot.get_channel(channelID)
+        channel = self.m_dBot.get_channel(channelID)
+        if channel:
+            await channel.send(message)
+        else:
+            print(f"Failed to send message, channel with ID {channelID} could not be found.")
