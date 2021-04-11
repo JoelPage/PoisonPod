@@ -31,7 +31,19 @@ class Bot():
         @dUtils.commands.has_any_role(*roles)
         async def version(ctx, *args):
             print("!version")
-            await ctx.send("Poison Pod Bot v0.0.1\nhttps://github.com/JoelPage/PoisonPod")
+            await ctx.send("Poison Pod Bot v0.0.2\nhttps://github.com/JoelPage/PoisonPod")
+
+        @self.m_dBot.command()
+        @dUtils.commands.has_any_role(*roles)
+        async def sethost(ctx, *args):
+            print("!sethost")
+            dID = args[0]
+            tName = args[1]
+            success = self.m_userManager.SetHost(dID, tName)
+            if success:
+                await ctx.send(f"Host {dID} was succesfully set.")
+            else:
+                await ctx.send(f"Host {dID} was not set, for some reason.")
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
@@ -77,6 +89,12 @@ class Bot():
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
+        async def hostchannel(ctx, *args):
+            print("!hostchannel")
+            await ctx.send(f"The host output channel is set to <#{self.m_settings.GetHostChannelID()}>")
+
+        @self.m_dBot.command()
+        @dUtils.commands.has_any_role(*roles)
         async def setchannel(ctx, *args):
             print("!setchannel")
 
@@ -96,6 +114,27 @@ class Bot():
             else:
                 await ctx.send(f"Channel could not be found.")
 
+        @self.m_dBot.command()
+        @dUtils.commands.has_any_role(*roles)
+        async def sethostchannel(ctx, *args):
+            print("!sethostchannel")
+
+            channelID = args[0]
+
+            try:
+                channelID = dUtils.parse_channel(channelID)
+            except:
+                await ctx.send("Failed to parse channel.")
+                return
+
+            channel = self.m_dBot.get_host_channel(channelID)
+            if channel:
+                self.m_settings.m_dHostChannelID = channelID
+                self.m_settings.Save()
+                await ctx.send(f"Host channel set to <#{channelID}>")
+            else:
+                await ctx.send(f"Channel could not be found.")
+
     def Run(self):
         print("Retrieving token!")
         token = pUtils.getEnvVar("DISCORD_TOKEN")
@@ -110,9 +149,28 @@ class Bot():
         interval = 30
         await self.m_dBot.wait_until_ready()
         while True:
+            hostChannelID = self.m_settings.GetHostChannelID()
             channelID = self.m_settings.GetChannelID()
+            host = self.m_userManager.GetHost()
             users = self.m_userManager.GetUsers()
+
+            # looks like isDirty flag is vestigial 
             isDirty = False
+
+            dHostID = host.m_dID
+            tHostName = host.m_tName
+            hostWasLive = host.m_isLive
+            hostIsLive = tUtils.checkUser(tHostName)
+
+            if hostIsLive:
+                if not hostWasLive:
+                    isDirty = True
+                    if host.ShouldNotify():
+                        await self.PostMessage_Async(hostChannelID, f"{dHostID} went live! Check them out on https://www.twitch.tv/{tHostName}")
+            else:
+                if hostWasLive:
+                    isDirty = True
+
             for user in users:
                 dID = user.m_dID
                 tName = user.m_tName
