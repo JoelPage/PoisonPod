@@ -22,9 +22,9 @@ API_HEADERS = {
 
 def checkUser(user): #returns true if online, false if not
     print(f"Checking if user {user} is live.")
-    userid = twitch.get_users(logins=[user])['data'][0]['id']
-    url = TWITCH_STREAM_API_ENDPOINT_V5.format(userid)
     try:
+        userid = twitch.get_users(logins=[user])['data'][0]['id']
+        url = TWITCH_STREAM_API_ENDPOINT_V5.format(userid)
         req = requests.Session().get(url, headers=API_HEADERS)
         jsondata = req.json()
         if 'stream' in jsondata:

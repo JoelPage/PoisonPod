@@ -25,7 +25,7 @@ class Bot():
     def InitialiseCommands(self):
 
         # Permission Roles
-        roles = ['Moderator']
+        roles = ['Moderators']
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
