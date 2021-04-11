@@ -35,11 +35,11 @@ class Bot():
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
-        async def sethost(ctx, *args):
-            print("!sethost")
+        async def addhost(ctx, *args):
+            print("!addhost")
             dID = args[0]
             tName = args[1]
-            success = self.m_userManager.SetHost(dID, tName)
+            success = self.m_userManager.AddHost(dID, tName)
             if success:
                 await ctx.send(f"Host {dID} was succesfully set.")
             else:
@@ -49,13 +49,16 @@ class Bot():
         @dUtils.commands.has_any_role(*roles)
         async def adduser(ctx, *args):
             print("!adduser")
-            dID = args[0]
-            tName = args[1]
-            success = self.m_userManager.AddUser(dID, tName)
-            if success:
-                await ctx.send(f"User {dID} was succesfully added.")
-            else:
-                await ctx.send(f"User {dID} was not added, for some reason.")
+            try:
+                dID = args[0]
+                tName = args[1]
+                success = self.m_userManager.AddUser(dID, tName)
+                if success:
+                    await ctx.send(f"User {dID} was succesfully added.")
+                else:
+                    await ctx.send(f"User {dID} was not added, for some reason.")
+            except:
+                await ctx.send(f"You dun goofed.")
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
@@ -67,6 +70,19 @@ class Bot():
                 await ctx.send(f"User {dID} succesfully removed.")
             else:
                 await ctx.send(f"User {dID} was not removed, for some reason.")
+
+        @self.m_dBot.command()
+        @dUtils.commands.has_any_role(*roles)
+        async def hosts(ctx, *args):
+            print("!hosts")
+            hostsStr = ""
+            for host in self.m_userManager.GetHosts():
+                isLiveStr = "Offline"
+                if host.m_isLive:
+                    isLiveStr = "Online"
+                hostsStr += f"{host.m_dID} ({host.m_tName}) is {isLiveStr}\n"
+            dEmbed = dUtils.CreateEmbed("Registered Users", hostsStr)
+            await ctx.send(embed=dEmbed)
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
@@ -151,25 +167,28 @@ class Bot():
         while True:
             hostChannelID = self.m_settings.GetHostChannelID()
             channelID = self.m_settings.GetChannelID()
-            host = self.m_userManager.GetHost()
+            hosts = self.m_userManager.GetHosts()
             users = self.m_userManager.GetUsers()
 
             # looks like isDirty flag is vestigial 
             isDirty = False
 
-            dHostID = host.m_dID
-            tHostName = host.m_tName
-            hostWasLive = host.m_isLive
-            hostIsLive = tUtils.checkUser(tHostName)
+            for host in hosts:
+                dHostID = host.m_dID
+                tHostName = host.m_tName
+                hostWasLive = host.m_isLive
+                hostIsLive = tUtils.checkUser(tHostName)
 
-            if hostIsLive:
-                if not hostWasLive:
-                    isDirty = True
-                    if host.ShouldNotify():
-                        await self.PostMessage_Async(hostChannelID, f"{dHostID} went live! Check them out on https://www.twitch.tv/{tHostName}")
-            else:
-                if hostWasLive:
-                    isDirty = True
+                if hostIsLive:
+                    if not hostWasLive:
+                        isDirty = True
+                        if host.ShouldNotify():
+                            await self.PostMessage_Async(hostChannelID, f"{dHostID} went live! Check them out on https://www.twitch.tv/{tHostName}")
+                else:
+                    if hostWasLive:
+                        isDirty = True
+
+                host.SetIsLive(hostIsLive)
 
             for user in users:
                 dID = user.m_dID

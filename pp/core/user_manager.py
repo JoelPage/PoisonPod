@@ -5,7 +5,7 @@ import pp.core.utils as ppUtils
 
 class UserManager():
     def __init__(self):
-        self.m_host = ppUser.Host("init", 0)
+        self.m_hosts = []
         self.m_users = []
         self.m_xmlFilePath = "data/user_manager.xml"
         self.Load()
@@ -22,7 +22,8 @@ class UserManager():
     def Save(self):
         root = xmlUtils.create_tree_root('root')
         xmlUtils.create_node(root, 'hosts')
-        self.m_host.Serialise(root)
+        for host in self.m_hosts:
+            host.Serialise(root)
         xmlUtils.create_node(root, 'users')
         for user in self.m_users:
             user.Serialise(root)
@@ -35,7 +36,7 @@ class UserManager():
                 newHost = ppUser.Host("Awaiting Deserialisation", 0)
                 newHost.Deserialise(hostNode)
                 print(f"Loaded Host {newHost.m_tName}")
-                self.m_host = newHost
+                self.m_hosts.append(newHost)
 
     def CreateUsersFromRoot(self, root):
         self.m_users.clear()
@@ -46,32 +47,35 @@ class UserManager():
                 print(f"Loaded User {newUser.m_tName}")
                 self.m_users.append(newUser)
 
-    def GetHost(self):
-        return self.m_host
+    def GetHosts(self):
+        return self.m_hosts
 
     def GetUsers(self):
         return self.m_users
 
-    def DoesDiscordIDExist(self, dID):
-        return ppUtils.Contains(self.m_users, lambda x: x.m_dID == dID)
+    def DoesDiscordIDExist(self, list, dID):
+        return ppUtils.Contains(list, lambda x: x.m_dID == dID)
 
-    def SetHost(self, dID, tName):
-        if self.DoesDiscordIDExist(dID):
+    def AddHost(self, dID, tName):
+        if self.DoesDiscordIDExist(self.m_hosts, dID):
             return False
         else:
             host = ppUser.Host(dID, tName)
-            self.m_host = host
+            self.AddHostInternal(host)
             self.Save()
             return True
 
     def AddUser(self, dID, tName):
-        if self.DoesDiscordIDExist(dID):
+        if self.DoesDiscordIDExist(self.m_users, dID):
             return False
         else:
             user = ppUser.User(dID, tName)
             self.AddUserInternal(user)
             self.Save()
             return True
+
+    def AddHostInternal(self, user):
+        self.m_hosts.append(user)
 
     def AddUserInternal(self, user):
         self.m_users.append(user)
@@ -80,7 +84,7 @@ class UserManager():
         self.m_users.remove(user)
 
     def RemoveUserByDiscordID(self, dID):
-        if self.DoesDiscordIDExist(dID):
+        if self.DoesDiscordIDExist(self.m_users, dID):
             user = ppUtils.GetElement(self.m_users, lambda x: x.m_dID == dID)
             self.RemoveUserInternal(user)
             self.Save()
