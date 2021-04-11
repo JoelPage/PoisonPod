@@ -5,7 +5,7 @@ import pp.core.utils as ppUtils
 
 class UserManager():
     def __init__(self):
-        self.m_host = ppUser("init", 0)
+        self.m_host = ppUser.Host("init", 0)
         self.m_users = []
         self.m_xmlFilePath = "data/user_manager.xml"
         self.Load()
