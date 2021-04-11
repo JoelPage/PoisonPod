@@ -127,7 +127,7 @@ class Bot():
                 await ctx.send("Failed to parse channel.")
                 return
 
-            channel = self.m_dBot.get_host_channel(channelID)
+            channel = self.m_dBot.get_channel(channelID)
             if channel:
                 self.m_settings.m_dHostChannelID = channelID
                 self.m_settings.Save()
