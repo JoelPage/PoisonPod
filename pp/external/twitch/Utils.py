@@ -20,6 +20,17 @@ API_HEADERS = {
     'Accept' : 'application/vnd.twitchtv.v5+json',
 }
 
+def getUserData(user):
+    try:
+        userid = twitch.get_users(logins=[user])['data'][0]['id']
+        url = TWITCH_STREAM_API_ENDPOINT_V5.format(userid)
+        req = requests.Session().get(url, headers=API_HEADERS)
+        jsondata = req.json()
+        return jsondata
+    except Exception as e:
+        print(f"Error checking user: {e}")
+        return None   
+
 def checkUser(user): #returns true if online, false if not
     print(f"Checking if user {user} is live.")
     try:

@@ -12,12 +12,13 @@ class UserManager():
 
     def Load(self):
         try:
+            print("LoadStarted")
             xmlTree = xmlUtils.fileRead(self.m_xmlFilePath)
             self.CreateHostsFromRoot(xmlTree.getroot())
             self.CreateUsersFromRoot(xmlTree.getroot())
-            
+            print("LoadComplete")
         except:
-            pass
+            print("LoadFailed")
 
     def Save(self):
         root = xmlUtils.create_tree_root('root')
@@ -31,8 +32,11 @@ class UserManager():
         xmlUtils.fileWrite(root, self.m_xmlFilePath)
 
     def CreateHostsFromRoot(self, root):
+        print("Finding Hosts Node")
         for hostsNode in root.findall("hosts"):
-            for hostNode in usersNode.findall("host"):
+            print("Finding Host Nodes")
+            for hostNode in hostsNode.findall("host"):
+                print("Creating New Host")
                 newHost = ppUser.Host("Awaiting Deserialisation", 0)
                 newHost.Deserialise(hostNode)
                 print(f"Loaded Host {newHost.m_tName}")

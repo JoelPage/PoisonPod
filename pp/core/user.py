@@ -16,6 +16,7 @@ class Host():
         self.m_wasLastLiveTimestamp = xmlUtils.get_value_int(node, 'wasLastLiveTimestamp')
 
     def Serialise(self, root):
+        print("Serialising Host")
         hostsnode = root.find('hosts')
         hostNode = xmlUtils.create_node(hostsnode, 'host')
         xmlUtils.create_and_set_node_text_if_exists(hostNode, 'dID', self.m_dID)
