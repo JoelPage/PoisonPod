@@ -87,10 +87,22 @@ class UserManager():
     def RemoveUserInternal(self, user):
         self.m_users.remove(user)
 
+    def RemoveHostInternal(self, host):
+        self.m_hosts.remove(host)
+
     def RemoveUserByDiscordID(self, dID):
         if self.DoesDiscordIDExist(self.m_users, dID):
             user = ppUtils.GetElement(self.m_users, lambda x: x.m_dID == dID)
             self.RemoveUserInternal(user)
+            self.Save()
+            return True
+        else:
+            return False
+
+    def RemoveHostByDiscordID(self, dID):
+        if self.DoesDiscordIDExist(self.m_hosts, dID):
+            host = ppUtils.GetElement(self.m_hosts, lambda x: x.m_dID == dID)
+            self.RemoveHostInternal(host)
             self.Save()
             return True
         else:

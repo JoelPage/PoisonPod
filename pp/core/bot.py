@@ -47,6 +47,17 @@ class Bot():
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
+        async def removehost(ctx, *args):
+            print("!removehost")
+            dID = args[0]
+            success = self.m_userManager.RemoveHostByDiscordID(dID)
+            if success:
+                await ctx.send(f"Host {dID} succesfully removed.")
+            else:
+                await ctx.send(f"Host {dID} was not removed, for some reason.")
+
+        @self.m_dBot.command()
+        @dUtils.commands.has_any_role(*roles)
         async def adduser(ctx, *args):
             print("!adduser")
             try:
@@ -166,76 +177,15 @@ class Bot():
         await self.m_dBot.wait_until_ready()
         while True:
             hostChannelID = self.m_settings.GetHostChannelID()
-            channelID = self.m_settings.GetChannelID()
+            userChannelID = self.m_settings.GetChannelID()
             hosts = self.m_userManager.GetHosts()
             users = self.m_userManager.GetUsers()
 
-            # looks like isDirty flag is vestigial 
-            isDirty = False
-
-            # hosts, probably only 1 but ya know, expandable 
             for host in hosts:
-                dHostID = host.m_dID
-                tHostName = host.m_tName
-                hostWasLive = host.m_isLive
-                userData = tUtils.getUserData(tHostName)
-                hostIsLive = False
-                game = "placeholdergame"
-                status = "placeholderstatus"
-                logo = "placeholderlogo"
-                description = "placeholderdesc"
-
-                if userData is None:
-                    continue
-
-                if 'stream' in userData:
-                    streamData = userData['stream']
-                    if streamData is not None: 
-                        if not hostWasLive:
-                            if host.ShouldNotify():
-                                hostIsLive = True
-                                game = streamData['game'] #could crash if no exist.
-                                channelData = streamData['channel'] #could crash if no exist.
-                                status = channelData['status'] #could crash if no exist.
-                                logo = channelData['logo'] #could crash if no exist.
-                                description = channelData['description'] #could crash if no exist.
-
-                                isDirty = True # vestigial flag
-
-                                tUrl = f"https://www.twitch.tv/{tHostName}"
-                                # Get title of stream
-                                dEmbed = dUtils.CreateEmbed("Title", None)
-                                dEmbed.url = tUrl
-                                dEmbed.description = description
-                                dEmbed.title = status
-                                dEmbed.set_thumbnail(url=logo)
-                                dEmbed.set_image(url=f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{tHostName}-1920x1080.jpg?width=1606&height=904")
-                                dEmbed.timestamp = pUtils.utcnow()
-                                dEmbed.set_footer(text="ppbot")
-                                dEmbed.set_author(name=f"{tHostName}", icon_url=logo)
-
-                                message = f"Hey @ Everyone {dHostID} went live! Check them out at {tUrl}"
-
-                                await self.PostEmbed_Async(hostChannelID, embed=dEmbed, message=message)
-
-                host.SetIsLive(hostIsLive)
+                await self.PostGoLiveEmbed_Async(host, hostChannelID, True)
 
             for user in users:
-                dID = user.m_dID
-                tName = user.m_tName
-                wasLive = user.m_isLive
-                isLive = tUtils.checkUser(tName)
-
-                if isLive:
-                    if not wasLive:
-                        isDirty = True
-                        if user.ShouldNotify():
-                            await self.PostMessage_Async(channelID, f"{dID} went live! Check them out at https://www.twitch.tv/{tName}")
-                else:
-                    if wasLive:
-                        isDirty = True
-
-                user.SetIsLive(isLive)
+                await self.PostGoLiveEmbed_Async(user, userChannelID, False)
 
             self.SaveUserData()
 
@@ -254,3 +204,61 @@ class Bot():
             await channel.send(message, embed=embed)
         else:
             print(f"Failed to send embed, channel with ID {channelID} could not be found.")
+
+    async def PostGoLiveEmbed_Async(self, user, channelID, shouldTag):
+        print("PostGoLiveEmbed_Async")
+        dID = user.m_dID
+        name = user.m_tName
+        wasLive = user.m_isLive
+        isLive = False
+
+        print(f"name : {name}")
+        data = tUtils.getUserData(name)
+        game = "placeholdergame"
+        status = "placeholderstatus"
+        logo = "placeholderlogo"
+        description = "placeholderdesc"
+
+        if data is None:
+            print("data is none")
+            return
+
+        if not 'stream' in data:
+            print("not stream in data")
+            return
+
+        streamData = data['stream']
+
+        if streamData is None:
+            print("streamData is none")
+            return
+
+        isLive = True
+        if not wasLive:
+            print("wasNotLive")
+            if user.ShouldNotify():
+                print("should notify")
+                game = streamData['game'] #could crash if no exist.
+                channelData = streamData['channel'] #could crash if no exist.
+                status = channelData['status'] #could crash if no exist.
+                logo = channelData['logo'] #could crash if no exist.
+                description = channelData['description'] #could crash if no exist.
+
+                tUrl = f"https://www.twitch.tv/{name}"
+                # Get title of stream
+                dEmbed = dUtils.CreateEmbed(status, description)
+                dEmbed.url = tUrl
+                dEmbed.set_thumbnail(url=logo)
+                dEmbed.set_image(url=f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{name}-1920x1080.jpg?width=1606&height=904")
+                dEmbed.timestamp = pUtils.utcnow()
+                dEmbed.set_footer(text="ppbot")
+                dEmbed.set_author(name=f"{name}", icon_url=logo)
+
+                message = f"{dID} went live! Check them out at {tUrl}"
+
+                if shouldTag:
+                    message = f"Hey @everyone {message}"
+
+                await self.PostEmbed_Async(channelID, embed=dEmbed, message=message)
+
+        user.SetIsLive(isLive)
