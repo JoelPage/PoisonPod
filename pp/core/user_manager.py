@@ -107,3 +107,9 @@ class UserManager():
             return True
         else:
             return False
+
+    def FindUserByID(self, dID):
+        if self.DoesDiscordIDExist(self.m_users, dID):
+            return ppUtils.GetElement(self.m_users, lambda x: x.m_dID == dID)
+        else:
+            return None

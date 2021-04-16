@@ -162,6 +162,20 @@ class Bot():
             else:
                 await ctx.send(f"Channel could not be found.")
 
+        @self.m_dBot.command()
+        @dUtils.commands.has_any_role(*roles)
+        async def announce(ctx, *args):
+            print("!announceuser")
+
+            dID = args[0]
+
+            user = ppUserManager.FindUserByID(dID)
+            if user:
+                userChannelID = self.m_settings.GetChannelID()
+                await self.PostGoLiveEmbed_Async(user, userChannelID, False)
+            else:
+                await ctx.send(f"User could not be found.")
+
     def Run(self):
         print("Retrieving token!")
         token = pUtils.getEnvVar("DISCORD_TOKEN")
