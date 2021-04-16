@@ -231,9 +231,9 @@ class Bot():
 
         if streamData is None:
             print("streamData is none")
+            user.SetIsLive(False)
             return
 
-        isLive = True
         if not wasLive:
             print("wasNotLive")
             if user.ShouldNotify():
@@ -261,4 +261,5 @@ class Bot():
 
                 await self.PostEmbed_Async(channelID, embed=dEmbed, message=message)
 
-        user.SetIsLive(isLive)
+        user.SetIsLive(True)
+        
