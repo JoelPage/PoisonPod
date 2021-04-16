@@ -172,7 +172,7 @@ class Bot():
             user = self.m_userManager.FindUserByID(dID)
             if user:
                 userChannelID = self.m_settings.GetChannelID()
-                await self.PostGoLiveEmbed_Async(user, userChannelID, False)
+                await self.PostGoLiveEmbed_Async(user, userChannelID, False, force=True)
             else:
                 await ctx.send(f"User could not be found.")
 
@@ -219,7 +219,7 @@ class Bot():
         else:
             print(f"Failed to send embed, channel with ID {channelID} could not be found.")
 
-    async def PostGoLiveEmbed_Async(self, user, channelID, shouldTag):
+    async def PostGoLiveEmbed_Async(self, user, channelID, shouldTag, force=False):
         print("PostGoLiveEmbed_Async")
         dID = user.m_dID
         name = user.m_tName
@@ -248,9 +248,9 @@ class Bot():
             user.SetIsLive(False)
             return
 
-        if not wasLive:
+        if not wasLive or force:
             print("wasNotLive")
-            if user.ShouldNotify():
+            if user.ShouldNotify() or force:
                 print("should notify")
                 game = streamData['game'] #could crash if no exist.
                 channelData = streamData['channel'] #could crash if no exist.
