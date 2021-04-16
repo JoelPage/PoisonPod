@@ -164,12 +164,12 @@ class Bot():
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
-        async def announce(ctx, *args):
+        async def announceuser(ctx, *args):
             print("!announceuser")
 
             dID = args[0]
 
-            user = ppUserManager.FindUserByID(dID)
+            user = self.m_userManager.FindUserByID(dID)
             if user:
                 userChannelID = self.m_settings.GetChannelID()
                 await self.PostGoLiveEmbed_Async(user, userChannelID, False)
