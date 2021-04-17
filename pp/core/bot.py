@@ -271,7 +271,7 @@ class Bot():
                 message = f"{dID} went live! Check them out at {tUrl}"
 
                 if shouldTag:
-                    message = f"Hey @everyone {message}"
+                    message = f"Hey @everyone, {dID} is now live! Come and join us on {tUrl}"
 
                 await self.PostEmbed_Async(channelID, embed=dEmbed, message=message)
 
