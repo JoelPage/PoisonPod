@@ -28,10 +28,49 @@ class Bot():
         roles = ['Moderators']
 
         @self.m_dBot.command()
+        async def whoslive(ctx, *args):
+            print("!whoslive")
+            usersStr = ""
+            wasLive = False 
+            for user in self.m_userManager.GetUsers():
+                if user.m_isLive:
+                    wasLive = True
+                    isLiveStr = self.m_settings.m_onlineEmoji
+                    usersStr += f"{isLiveStr} (https://twitch.tv/{user.m_tName})\n"
+
+            if wasLive == False:
+                usersStr = "Nobody is live :("
+
+            dEmbed = dUtils.CreateEmbed("Live PP Community Streamers", usersStr)
+            await ctx.send(embed=dEmbed)
+
+        @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def version(ctx, *args):
             print("!version")
             await ctx.send("Poison Pod Bot v0.0.2\nhttps://github.com/JoelPage/PoisonPod")
+
+        @self.m_dBot.command()
+        @dUtils.commands.has_any_role(*roles)
+        async def setonlineemoji(ctx, *args):
+            print("!setonlineemoji")
+
+            emoji = args[0]
+            self.m_settings.m_onlineEmoji = emoji
+            self.m_settings.Save()
+
+            await ctx.send(f"Online Emoji set to {self.m_settings.m_onlineEmoji}")
+            
+        @self.m_dBot.command()
+        @dUtils.commands.has_any_role(*roles)
+        async def setofflineemoji(ctx, *args):
+            print("!setofflineemoji")
+
+            emoji = args[0]
+            self.m_settings.m_offlineEmoji = emoji
+            self.m_settings.Save()
+
+            await ctx.send(f"Offline Emoji set to {self.m_settings.m_offlineEmoji}")
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
@@ -88,11 +127,11 @@ class Bot():
             print("!hosts")
             hostsStr = ""
             for host in self.m_userManager.GetHosts():
-                isLiveStr = "Offline"
+                isLiveStr = self.m_settings.m_offlineEmoji
                 if host.m_isLive:
-                    isLiveStr = "Online"
-                hostsStr += f"{host.m_dID} ({host.m_tName}) is {isLiveStr}\n"
-            dEmbed = dUtils.CreateEmbed("Registered Users", hostsStr)
+                    isLiveStr = self.m_settings.m_onlineEmoji
+                hostsStr += f"{isLiveStr} {host.m_dID} ({host.m_tName})\n"
+            dEmbed = dUtils.CreateEmbed("Registered Hosts", hostsStr)
             await ctx.send(embed=dEmbed)
 
         @self.m_dBot.command()
@@ -101,10 +140,10 @@ class Bot():
             print("!users")
             usersStr = ""
             for user in self.m_userManager.GetUsers():
-                isLiveStr = "Offline"
+                isLiveStr = self.m_settings.m_offlineEmoji
                 if user.m_isLive:
-                    isLiveStr = "Online"
-                usersStr += f"{user.m_dID} ({user.m_tName}) is {isLiveStr}\n"
+                    isLiveStr = self.m_settings.m_onlineEmoji
+                usersStr += f"{isLiveStr} {user.m_dID} ({user.m_tName})\n"
             dEmbed = dUtils.CreateEmbed("Registered Users", usersStr)
             await ctx.send(embed=dEmbed)
 
@@ -176,6 +215,20 @@ class Bot():
             else:
                 await ctx.send(f"User could not be found.")
 
+        @self.m_dBot.command()
+        @dUtils.commands.has_any_role(*roles)
+        async def announcehost(ctx, *args):
+            print("!announcehost")
+
+            dID = args[0]
+
+            host = self.m_userManager.FindHostByID(dID)
+            if host:
+                hostChannelID = self.m_settings.GetHostChannelID()
+                await self.PostGoLiveEmbed_Async(host, hostChannelID, True, force=True)
+            else:
+                await ctx.send(f"Host could not be found.")
+
     def Run(self):
         print("Retrieving token!")
         token = pUtils.getEnvVar("DISCORD_TOKEN")
@@ -220,11 +273,9 @@ class Bot():
             print(f"Failed to send embed, channel with ID {channelID} could not be found.")
 
     async def PostGoLiveEmbed_Async(self, user, channelID, shouldTag, force=False):
-        print("PostGoLiveEmbed_Async")
         dID = user.m_dID
         name = user.m_tName
         wasLive = user.m_isLive
-        isLive = False
 
         print(f"name : {name}")
         data = tUtils.getUserData(name)
@@ -234,24 +285,19 @@ class Bot():
         description = "placeholderdesc"
 
         if data is None:
-            print("data is none")
             return
 
         if not 'stream' in data:
-            print("not stream in data")
             return
 
         streamData = data['stream']
 
         if streamData is None:
-            print("streamData is none")
             user.SetIsLive(False)
             return
 
         if not wasLive or force:
-            print("wasNotLive")
             if user.ShouldNotify() or force:
-                print("should notify")
                 game = streamData['game'] #could crash if no exist.
                 channelData = streamData['channel'] #could crash if no exist.
                 status = channelData['status'] #could crash if no exist.
@@ -263,7 +309,7 @@ class Bot():
                 dEmbed = dUtils.CreateEmbed(status, description)
                 dEmbed.url = tUrl
                 dEmbed.set_thumbnail(url=logo)
-                dEmbed.set_image(url=f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{name}-1920x1080.jpg?width=1606&height=904")
+                dEmbed.set_image(url=f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{name}-640x360.jpg/?_={pUtils.utcnowtimestamp()}")
                 dEmbed.timestamp = pUtils.utcnow()
                 dEmbed.set_footer(text="ppbot")
                 dEmbed.set_author(name=f"{name}", icon_url=logo)
@@ -271,6 +317,7 @@ class Bot():
                 message = f"{dID} went live! Check them out at {tUrl}"
 
                 if shouldTag:
+                    dEmbed.add_field(name="Game", value=game, inline=False)
                     message = f"Hey @everyone, {dID} is now live! Come and join us on {tUrl}"
 
                 await self.PostEmbed_Async(channelID, embed=dEmbed, message=message)

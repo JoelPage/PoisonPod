@@ -53,6 +53,12 @@ def create_and_set_node_text_float(parent, name, value):
     valueAsFloat = float(value)
     create_and_set_node_text(parent, name, valueAsFloat)
 
+def create_and_set_node_text_int_bytes(parent, name, value):
+    print(f"Serialising {name} {value}")
+    valueAsBytes = value.encode('utf8')
+    valueAsInt = int.from_bytes(valueAsBytes, pySys.byteorder)
+    create_and_set_node_text_int(parent, name, valueAsInt)
+
 def get_value_text(node, name): 
     valueNode = node.find(name)
     if valueNode != None:
@@ -83,6 +89,11 @@ def get_value_bool(node, name):
     if valueNode != None:
         valueAsStr = valueNode.text
         return True if valueAsStr == "True" else False
+
+def get_value_unicode(node, name):
+    valueAsInt = get_value_int(node, name)
+    if valueAsInt != None:
+        return valueAsInt.to_bytes(numBytes, pySys.byteorder)
 
 def get_values_float(node, name, values):
     if node != None:

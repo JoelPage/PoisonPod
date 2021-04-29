@@ -113,3 +113,9 @@ class UserManager():
             return ppUtils.GetElement(self.m_users, lambda x: x.m_dID == dID)
         else:
             return None
+
+    def FindHostByID(self, dID):
+        if self.DoesDiscordIDExist(self.m_hosts, dID):
+            return ppUtils.GetElement(self.m_hosts, lambda x: x.m_dID == dID)
+        else:
+            return None
