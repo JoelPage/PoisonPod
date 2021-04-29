@@ -32,6 +32,12 @@ class Bot():
             print("!whoslive")
             usersStr = ""
             wasLive = False 
+            for host in self.m_userManager.GetHosts():
+                if host.m_isLive:
+                    wasLive = True
+                    isLiveStr = self.m_settings.m_offlineEmoji
+                    usersStr += f"{isLiveStr} (https://twitch.tv/{host.m_tName})\n"
+
             for user in self.m_userManager.GetUsers():
                 if user.m_isLive:
                     wasLive = True
