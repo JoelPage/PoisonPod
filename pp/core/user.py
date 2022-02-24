@@ -26,9 +26,11 @@ class Host():
 
     def SetIsLive(self, isLive):
         if isLive:
+            print(f"{self.m_tName} is Live.")
             self.m_isLive = True
             self.m_wasLastLiveTimestamp = pUtils.utcnowtimestamp()
         else:
+            print(f"{self.m_tName} is not Live.")
             self.m_isLive = False
         
     def ShouldNotify(self):
@@ -61,9 +63,11 @@ class User():
 
     def SetIsLive(self, isLive):
         if isLive:
+            print(f"{self.m_tName} is Live.")
             self.m_isLive = True
             self.m_wasLastLiveTimestamp = pUtils.utcnowtimestamp()
         else:
+            print(f"{self.m_tName} is not Live.")
             self.m_isLive = False
         
     def ShouldNotify(self):

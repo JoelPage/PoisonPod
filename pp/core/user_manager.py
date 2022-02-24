@@ -58,7 +58,12 @@ class UserManager():
         return self.m_users
 
     def DoesDiscordIDExist(self, list, dID):
-        return ppUtils.Contains(list, lambda x: x.m_dID == dID)
+        result = ppUtils.Contains(list, lambda x: x.m_dID == dID)
+        if result:
+            print(f"########## DoesDiscordIDExist : {dID} Found ##########")
+        else:
+            print(f"########## DoesDiscordIDExist : {dID} Not Found ##########")
+        return result
 
     def AddHost(self, dID, tName):
         if self.DoesDiscordIDExist(self.m_hosts, dID):

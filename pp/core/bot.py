@@ -35,7 +35,7 @@ class Bot():
             for host in self.m_userManager.GetHosts():
                 if host.m_isLive:
                     wasLive = True
-                    isLiveStr = self.m_settings.m_offlineEmoji
+                    isLiveStr = self.m_settings.m_onlineEmoji
                     usersStr += f"{isLiveStr} (https://twitch.tv/{host.m_tName})\n"
 
             for user in self.m_userManager.GetUsers():
@@ -214,6 +214,8 @@ class Bot():
 
             dID = args[0]
 
+            print(f"########## Announce User Called with ID : {dID} ##########")
+
             user = self.m_userManager.FindUserByID(dID)
             if user:
                 userChannelID = self.m_settings.GetChannelID()
@@ -284,38 +286,38 @@ class Bot():
         wasLive = user.m_isLive
 
         print(f"name : {name}")
-        data = tUtils.getUserData(name)
-        game = "placeholdergame"
-        status = "placeholderstatus"
-        logo = "placeholderlogo"
-        description = "placeholderdesc"
 
-        if data is None:
+        try:
+            streamData = tUtils.checkIfLive(name)['data']
+            channelData = tUtils.getChannelData(name)['data']
+        except Exception as e:
+            result = "An error occured: " + str(e)
+            print(f"########## return {result} ##########")
             return
 
-        if not 'stream' in data:
+        if streamData is None or channelData is None:
+            print(f"no streamData or channelData")
+            user.SetIsLive(False)
             return
 
-        streamData = data['stream']
-
-        if streamData is None:
+        if len(streamData) <= 0:
+            print("streamData length <= 0")
             user.SetIsLive(False)
             return
 
         if not wasLive or force:
             if user.ShouldNotify() or force:
-                game = streamData['game'] #could crash if no exist.
-                channelData = streamData['channel'] #could crash if no exist.
-                status = channelData['status'] #could crash if no exist.
-                logo = channelData['logo'] #could crash if no exist.
-                description = channelData['description'] #could crash if no exist.
+                
+                title = streamData[0]['title'] #could crash if no exist.
+                logo = channelData[0]['profile_image_url']
+                description = channelData[0]['description']
 
                 tUrl = f"https://www.twitch.tv/{name}"
                 # Get title of stream
-                dEmbed = dUtils.CreateEmbed(status, description)
+                dEmbed = dUtils.CreateEmbed(title, description)
                 dEmbed.url = tUrl
                 dEmbed.set_thumbnail(url=logo)
-                dEmbed.set_image(url=f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{name}-640x360.jpg/?_={pUtils.utcnowtimestamp()}")
+                dEmbed.set_image(url=f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{name}-1920x1080.jpg")
                 dEmbed.timestamp = pUtils.utcnow()
                 dEmbed.set_footer(text="ppbot")
                 dEmbed.set_author(name=f"{name}", icon_url=logo)
@@ -323,7 +325,7 @@ class Bot():
                 message = f"{dID} went live! Check them out at {tUrl}"
 
                 if shouldTag:
-                    dEmbed.add_field(name="Game", value=game, inline=False)
+                    #dEmbed.add_field(name="Game", value=game, inline=False)
                     message = f"Hey @everyone, {dID} is now live! Come and join us on {tUrl}"
 
                 await self.PostEmbed_Async(channelID, embed=dEmbed, message=message)
