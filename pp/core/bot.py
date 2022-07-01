@@ -1,6 +1,7 @@
 import pp.external.twitch.Utils as tUtils
 import pp.external.discord.Utils as dUtils
 import pp.external.python.Utils as pUtils
+import pp.external.log.Utils as lUtils
 
 import pp.core.user_manager as ppUserManager
 import pp.core.user as ppUser
@@ -19,7 +20,7 @@ class Bot():
 
         @self.m_dBot.event
         async def on_ready():
-            print(f'{self.m_dBot.user.name} has connected to Discord!')
+            lUtils.info(f'{self.m_dBot.user.name} has connected to Discord!')
             self.m_dBot.loop.create_task(self.Start_Async())
 
     def InitialiseCommands(self):
@@ -28,8 +29,14 @@ class Bot():
         roles = ['Moderators']
 
         @self.m_dBot.command()
+        @dUtils.commands.has_any_role(*roles)
+        async def version(ctx, *args):
+            lUtils.info("!version")
+            await ctx.send("Poison Pod Bot v0.0.2\nhttps://github.com/JoelPage/PoisonPod")
+
+        @self.m_dBot.command()
         async def whoslive(ctx, *args):
-            print("!whoslive")
+            lUtils.info("!whoslive")
             usersStr = ""
             wasLive = False 
             for host in self.m_userManager.GetHosts():
@@ -52,14 +59,8 @@ class Bot():
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
-        async def version(ctx, *args):
-            print("!version")
-            await ctx.send("Poison Pod Bot v0.0.2\nhttps://github.com/JoelPage/PoisonPod")
-
-        @self.m_dBot.command()
-        @dUtils.commands.has_any_role(*roles)
         async def setonlineemoji(ctx, *args):
-            print("!setonlineemoji")
+            lUtils.info("!setonlineemoji")
 
             emoji = args[0]
             self.m_settings.m_onlineEmoji = emoji
@@ -70,7 +71,7 @@ class Bot():
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def setofflineemoji(ctx, *args):
-            print("!setofflineemoji")
+            lUtils.info("!setofflineemoji")
 
             emoji = args[0]
             self.m_settings.m_offlineEmoji = emoji
@@ -81,7 +82,7 @@ class Bot():
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def addhost(ctx, *args):
-            print("!addhost")
+            lUtils.info("!addhost")
             dID = args[0]
             tName = args[1]
             success = self.m_userManager.AddHost(dID, tName)
@@ -93,7 +94,7 @@ class Bot():
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def removehost(ctx, *args):
-            print("!removehost")
+            lUtils.info("!removehost")
             dID = args[0]
             success = self.m_userManager.RemoveHostByDiscordID(dID)
             if success:
@@ -104,7 +105,7 @@ class Bot():
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def adduser(ctx, *args):
-            print("!adduser")
+            lUtils.info("!adduser")
             try:
                 dID = args[0]
                 tName = args[1]
@@ -119,7 +120,7 @@ class Bot():
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def removeuser(ctx, *args):
-            print("!removeuser")
+            lUtils.info("!removeuser")
             dID = args[0]
             success = self.m_userManager.RemoveUserByDiscordID(dID)
             if success:
@@ -130,7 +131,7 @@ class Bot():
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def hosts(ctx, *args):
-            print("!hosts")
+            lUtils.info("!hosts")
             hostsStr = ""
             for host in self.m_userManager.GetHosts():
                 isLiveStr = self.m_settings.m_offlineEmoji
@@ -143,7 +144,7 @@ class Bot():
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def users(ctx, *args):
-            print("!users")
+            lUtils.info("!users")
             usersStr = ""
             for user in self.m_userManager.GetUsers():
                 isLiveStr = self.m_settings.m_offlineEmoji
@@ -156,19 +157,19 @@ class Bot():
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def channel(ctx, *args):
-            print("!channel")
+            lUtils.info("!channel")
             await ctx.send(f"The output channel is set to <#{self.m_settings.GetChannelID()}>")
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def hostchannel(ctx, *args):
-            print("!hostchannel")
+            lUtils.info("!hostchannel")
             await ctx.send(f"The host output channel is set to <#{self.m_settings.GetHostChannelID()}>")
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def setchannel(ctx, *args):
-            print("!setchannel")
+            lUtils.info("!setchannel")
 
             channelID = args[0]
 
@@ -189,7 +190,7 @@ class Bot():
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def sethostchannel(ctx, *args):
-            print("!sethostchannel")
+            lUtils.info("!sethostchannel")
 
             channelID = args[0]
 
@@ -210,39 +211,67 @@ class Bot():
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def announceuser(ctx, *args):
-            print("!announceuser")
+            lUtils.info("!announceuser")
 
             dID = args[0]
 
-            print(f"########## Announce User Called with ID : {dID} ##########")
+            lUtils.info(f"########## Announce User Called with ID : {dID} ##########")
 
             user = self.m_userManager.FindUserByID(dID)
             if user:
-                userChannelID = self.m_settings.GetChannelID()
-                await self.PostGoLiveEmbed_Async(user, userChannelID, False, force=True)
+
+                try: 
+                    token = tUtils.getOAuthToken()
+
+                    if token == 0:
+                        result = "Failed to get auth token"
+                        await ctx.send(result)
+
+                    userChannelID = self.m_settings.GetChannelID()
+                    await self.PostGoLiveEmbed_Async(user, userChannelID, False, token, force=True)
+
+                except Exception as e:
+                    result = "An error occured: " + str(e)
+                    lUtils.debug(f"########## return {result} ##########")
+
+
+
             else:
                 await ctx.send(f"User could not be found.")
 
         @self.m_dBot.command()
         @dUtils.commands.has_any_role(*roles)
         async def announcehost(ctx, *args):
-            print("!announcehost")
+            lUtils.info("!announcehost")
 
             dID = args[0]
 
             host = self.m_userManager.FindHostByID(dID)
             if host:
-                hostChannelID = self.m_settings.GetHostChannelID()
-                await self.PostGoLiveEmbed_Async(host, hostChannelID, True, force=True)
+
+                try: 
+                    token = tUtils.getOAuthToken()
+
+                    if token == 0:
+                        result = "Failed to get auth token"
+                        await ctx.send(result)
+
+                        hostChannelID = self.m_settings.GetHostChannelID()
+                        await self.PostGoLiveEmbed_Async(host, hostChannelID, True, token, force=True)
+
+                except Exception as e:
+                    result = "An error occured: " + str(e)
+                    lUtils.debug(f"########## return {result} ##########")
+
             else:
                 await ctx.send(f"Host could not be found.")
 
     def Run(self):
-        print("Retrieving token!")
+        lUtils.info("Retrieving token!")
         token = pUtils.getEnvVar("DISCORD_TOKEN")
-        print("Connecting bot to discord...")
+        lUtils.info("Connecting bot to discord...")
         self.m_dBot.run(token)
-        print("Finished running bot!")
+        lUtils.info("Finished running bot!")
 
     def SaveUserData(self):
         self.m_userManager.Save()
@@ -251,57 +280,69 @@ class Bot():
         interval = 30
         await self.m_dBot.wait_until_ready()
         while True:
-            hostChannelID = self.m_settings.GetHostChannelID()
-            userChannelID = self.m_settings.GetChannelID()
-            hosts = self.m_userManager.GetHosts()
-            users = self.m_userManager.GetUsers()
-
-            for host in hosts:
-                await self.PostGoLiveEmbed_Async(host, hostChannelID, True)
-
-            for user in users:
-                await self.PostGoLiveEmbed_Async(user, userChannelID, False)
-
-            self.SaveUserData()
-
             await pUtils.sleep_async(interval)
-        
+
+            try: 
+                token = tUtils.getOAuthToken()
+
+                if token == 0:
+                    result = "Failed to get auth token"
+                    continue
+
+                hostChannelID = self.m_settings.GetHostChannelID()
+                userChannelID = self.m_settings.GetChannelID()
+                hosts = self.m_userManager.GetHosts()
+                users = self.m_userManager.GetUsers()
+
+                for host in hosts:
+                    await self.PostGoLiveEmbed_Async(host, hostChannelID, True, token)
+
+                for user in users:
+                    await self.PostGoLiveEmbed_Async(user, userChannelID, False, token)
+
+                self.SaveUserData()
+
+            except Exception as e:
+                result = "An error occured: " + str(e)
+                lUtils.info(f"########## return {result} ##########")
+                continue
+
     async def PostMessage_Async(self, channelID, message):
         channel = self.m_dBot.get_channel(channelID)
         if channel:
             await channel.send(message)
         else:
-            print(f"Failed to send message, channel with ID {channelID} could not be found.")
+            lUtils.info(f"Failed to send message, channel with ID '{channelID}' could not be found.")
 
     async def PostEmbed_Async(self, channelID, embed, message):
         channel = self.m_dBot.get_channel(channelID)
         if channel:
             await channel.send(message, embed=embed)
         else:
-            print(f"Failed to send embed, channel with ID {channelID} could not be found.")
+            lUtils.info(f"Failed to send embed, channel with ID '{channelID}' could not be found.")
 
-    async def PostGoLiveEmbed_Async(self, user, channelID, shouldTag, force=False):
+    async def PostGoLiveEmbed_Async(self, user, channelID, shouldTag, token, force=False):
         dID = user.m_dID
         name = user.m_tName
         wasLive = user.m_isLive
 
-        print(f"name : {name}")
+        lUtils.info(f"name : {name}")
 
         try:
-            streamData = tUtils.checkIfLive(name)['data']
-            channelData = tUtils.getChannelData(name)['data']
+            streamData = tUtils.checkIfLive(name, token)['data']
+            channelData = tUtils.getChannelData(name, token)['data']
         except Exception as e:
             result = "An error occured: " + str(e)
-            print(f"########## return {result} ##########")
+            lUtils.info(f"########## return {result} ##########")
             return
 
         if streamData is None or channelData is None:
-            print(f"no streamData or channelData")
+            lUtils.info(f"no streamData or channelData")
             user.SetIsLive(False)
             return
 
         if len(streamData) <= 0:
-            print("streamData length <= 0")
+            lUtils.info("streamData length <= 0")
             user.SetIsLive(False)
             return
 
@@ -310,17 +351,20 @@ class Bot():
                 
                 title = streamData[0]['title'] #could crash if no exist.
                 logo = channelData[0]['profile_image_url']
-                description = channelData[0]['description']
+                #description = channelData[0]['description']
+                gameName = streamData[0]['game_name']
 
                 tUrl = f"https://www.twitch.tv/{name}"
                 # Get title of stream
-                dEmbed = dUtils.CreateEmbed(title, description)
+                dEmbed = dUtils.CreateEmbed(title, "")
                 dEmbed.url = tUrl
                 dEmbed.set_thumbnail(url=logo)
-                dEmbed.set_image(url=f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{name}-1920x1080.jpg")
+                dEmbed.set_image(url=f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{name}-1920x1080.jpg/?={pUtils.utcnowtimestamp()}")
+
                 dEmbed.timestamp = pUtils.utcnow()
                 dEmbed.set_footer(text="ppbot")
-                dEmbed.set_author(name=f"{name}", icon_url=logo)
+
+                dEmbed.add_field(name="Streaming", value=gameName)
 
                 message = f"{dID} went live! Check them out at {tUrl}"
 

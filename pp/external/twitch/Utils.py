@@ -55,14 +55,9 @@ def getOAuthToken():
         print(f"########## return {result} ##########")
         return result
 
-def checkIfLive(channel):
+def checkIfLive(channel, token):
     #print(f"########## checkIfLive({channel}) ##########")
     url = "https://api.twitch.tv/helix/streams?user_login=" + channel
-    token = getOAuthToken()
-
-    if token == 0:
-        result = "Failed to get auth token"
-        return result
 
     HEADERS = {
         'Client-ID': client_id,
@@ -80,11 +75,10 @@ def checkIfLive(channel):
         print(f"########## return {result} ##########")
         return result
 
-def getChannelData(channel):
+def getChannelData(channel, token):
     #print(f"########## getChannelData({channel}) ##########")
     url = "https://api.twitch.tv/helix/users?login=" + channel
-    token = getOAuthToken()
-
+    
     HEADERS = {
         'Client-ID': client_id,
         'Authorization': 'Bearer ' + token

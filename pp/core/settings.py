@@ -15,10 +15,11 @@ class Settings():
             root = xmlTree.getroot()
             settingsNode = xmlUtils.get_node(root, 'settings')
             
-            self.m_dChannelID = xmlUtils.get_value_text(settingsNode, 'dChannelID')
-            self.m_dHostChannelID = xmlUtils.get_value_text(settingsNode, 'dHostChannelID')
+            self.m_dChannelID = xmlUtils.get_value_int(settingsNode, 'dChannelID')
+            self.m_dHostChannelID = xmlUtils.get_value_int(settingsNode, 'dHostChannelID')
             self.m_onlineEmoji = xmlUtils.get_value_unicode(settingsNode, 'onlineEmoji')
             self.m_offlineEmoji = xmlUtils.get_value_unicode(settingsNode, 'offlineEmoji')
+
         except:
             pass
 
